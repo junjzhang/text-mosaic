@@ -75,26 +75,71 @@ input[type="text"] {
   font-size: 16px;
 }
 
-.file-btn {
-  display: block;
-  text-align: center;
-  background: #111;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 12px;
-  min-height: 40px;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
 }
 
-.file-btn:hover {
-  background: #1a1a1a;
-  border-color: #3a3a3a;
-}
-
-.file-btn:active {
+.color-swatch {
+  aspect-ratio: 1;
+  min-height: 36px;
+  padding: 0;
   background: #222;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, transform 0.1s;
+  box-sizing: border-box;
+}
+
+.color-swatch:hover {
+  border-color: #4a4a4a;
+}
+
+.color-swatch.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.color-swatch.special {
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.color-swatch.custom {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ffb86c 35%, #6bcfff 70%, #a78bfa 100%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.swap-link {
+  display: none;
+  text-align: center;
+  padding: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border);
+}
+
+.swap-link:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+.swap-link.visible {
+  display: block;
 }
 
 input[type="range"] {
@@ -257,10 +302,11 @@ canvas.ready {
     align-items: center;
   }
 
-  .controls > label.file,
   .controls > label.output,
   .controls > label.words,
-  .controls > .actions {
+  .controls > label.bg,
+  .controls > .actions,
+  .controls > .swap-link {
     grid-column: 1 / -1;
   }
 
@@ -269,10 +315,8 @@ canvas.ready {
     font-size: 13px;
   }
 
-  .file-btn {
+  .color-swatch {
     min-height: 44px;
-    padding: 12px;
-    font-size: 14px;
   }
 
   #placeholder {

@@ -1,6 +1,5 @@
 export type Mode = "positive" | "negative";
 export type Output = "positive" | "negative" | "hstack" | "vstack";
-export type ColorKey = "white" | "black" | "avg";
 
 export interface MosaicOptions {
   words: string[];
@@ -9,7 +8,7 @@ export interface MosaicOptions {
   density: number;
   jitter: number;
   sizeVariance: number;
-  color: ColorKey;
+  color: string;
   output: Output;
 }
 
@@ -137,9 +136,8 @@ function readPixels(source: Source, w: number, h: number): Uint8ClampedArray {
   return ctx.getImageData(0, 0, w, h).data;
 }
 
-function resolveColor(key: ColorKey, pixels: Uint8ClampedArray): string {
-  if (key === "white") return "#ffffff";
-  if (key === "black") return "#000000";
+function resolveColor(value: string, pixels: Uint8ClampedArray): string {
+  if (value !== "avg") return value;
   let r = 0,
     g = 0,
     b = 0,

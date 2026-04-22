@@ -10,10 +10,11 @@ const densityInput = $<HTMLInputElement>("density");
 const jitterInput = $<HTMLInputElement>("jitter");
 const sizeVarInput = $<HTMLInputElement>("sizeVar");
 const fontSelect = $<HTMLSelectElement>("font");
-const colorSelect = $<HTMLSelectElement>("color");
+const colorGrid = $<HTMLDivElement>("colorGrid");
+const customColorInput = $<HTMLInputElement>("customColor");
 const colorLabel = $<HTMLSpanElement>("colorLabel");
+const swapLink = $<HTMLLabelElement>("swapLink");
 const outputGroup = $<HTMLDivElement>("output");
-const renderBtn = $<HTMLButtonElement>("render");
 const downloadBtn = $<HTMLButtonElement>("download");
 const canvas = $<HTMLCanvasElement>("canvas");
 const placeholder = $<HTMLDivElement>("placeholder");
@@ -23,6 +24,95 @@ const toggleBtn = $<HTMLButtonElement>("toggle");
 
 let currentImage: HTMLImageElement | null = null;
 let currentOutput: Output = "positive";
+let currentColor = "#ffffff";
+
+type Swatch =
+  | { type: "color"; value: string; label?: string }
+  | { type: "avg"; label: string }
+  | { type: "custom"; label: string };
+
+const SWATCHES: Swatch[] = [
+  { type: "color", value: "#ffffff", label: "白" },
+  { type: "color", value: "#000000", label: "黑" },
+  { type: "avg", label: "均色" },
+  { type: "custom", label: "自选" },
+  { type: "color", value: "#8DA3B8" },
+  { type: "color", value: "#D9B6B9" },
+  { type: "color", value: "#A5B5A0" },
+  { type: "color", value: "#D4C8B8" },
+  { type: "color", value: "#B7AFC7" },
+  { type: "color", value: "#9F9F9F" },
+  { type: "color", value: "#EAE3D2" },
+  { type: "color", value: "#C2A593" },
+  { type: "color", value: "#6C7A89" },
+  { type: "color", value: "#8E7E93" },
+  { type: "color", value: "#9FB3A8" },
+  { type: "color", value: "#B89A7C" },
+];
+
+function buildSwatches() {
+  for (const s of SWATCHES) {
+    if (s.type === "custom") {
+      const label = document.createElement("label");
+      label.className = "color-swatch special custom";
+      label.htmlFor = "customColor";
+      label.textContent = s.label;
+      label.title = s.label;
+      colorGrid.appendChild(label);
+    } else {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "color-swatch";
+      if (s.type === "avg") {
+        btn.classList.add("special", "avg");
+        btn.textContent = s.label;
+        btn.title = s.label;
+        btn.addEventListener("click", () => setColor("avg"));
+      } else {
+        btn.dataset.value = s.value.toLowerCase();
+        btn.style.background = s.value;
+        btn.title = s.label ?? s.value;
+        btn.setAttribute("aria-label", s.label ?? s.value);
+        btn.addEventListener("click", () => setColor(s.value));
+      }
+      colorGrid.appendChild(btn);
+    }
+  }
+}
+
+function setColor(value: string) {
+  currentColor = value;
+  updateActiveSwatch();
+  scheduleRender();
+}
+
+function updateActiveSwatch() {
+  const swatches = colorGrid.querySelectorAll<HTMLElement>(".color-swatch");
+  let matched = false;
+  for (const el of swatches) {
+    if (el.classList.contains("custom")) continue;
+    const isAvg = el.classList.contains("avg");
+    const active = isAvg
+      ? currentColor === "avg"
+      : el.dataset.value === currentColor.toLowerCase();
+    el.classList.toggle("active", active);
+    if (active) matched = true;
+  }
+  const custom = colorGrid.querySelector<HTMLElement>(".custom");
+  if (custom) {
+    const useCustom = !matched && currentColor !== "avg";
+    custom.classList.toggle("active", useCustom);
+    custom.style.background = useCustom ? currentColor : "";
+    custom.style.color = useCustom ? "transparent" : "";
+  }
+}
+
+customColorInput.addEventListener("input", () => {
+  setColor(customColorInput.value);
+});
+
+buildSwatches();
+updateActiveSwatch();
 
 const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
@@ -45,8 +135,14 @@ const sliders: [HTMLInputElement, HTMLOutputElement][] = [
 for (const [input, out] of sliders) {
   const sync = () => (out.value = input.value);
   sync();
-  input.addEventListener("input", sync);
+  input.addEventListener("input", () => {
+    sync();
+    scheduleRender();
+  });
 }
+
+wordsInput.addEventListener("input", scheduleRender);
+fontSelect.addEventListener("change", scheduleRender);
 
 const colorLabels: Record<Output, string> = {
   positive: "背景色",
@@ -67,7 +163,7 @@ outputGroup.addEventListener("click", (e) => {
     b.setAttribute("aria-checked", String(b === btn));
   }
   updateColorLabel();
-  if (currentImage) render();
+  scheduleRender();
 });
 
 function readOptions(): MosaicOptions {
@@ -82,7 +178,7 @@ function readOptions(): MosaicOptions {
     density: Number(densityInput.value),
     jitter: Number(jitterInput.value),
     sizeVariance: Number(sizeVarInput.value),
-    color: colorSelect.value as MosaicOptions["color"],
+    color: currentColor,
     output: currentOutput,
   };
 }
@@ -92,7 +188,18 @@ function render(autoCollapse = false) {
   renderMosaic(currentImage, canvas, readOptions());
   canvas.classList.add("ready");
   placeholder.style.display = "none";
+  swapLink.classList.add("visible");
   if (autoCollapse && isMobile()) setCollapsed(true);
+}
+
+let renderTimer: number | null = null;
+function scheduleRender() {
+  if (!currentImage) return;
+  if (renderTimer !== null) clearTimeout(renderTimer);
+  renderTimer = window.setTimeout(() => {
+    renderTimer = null;
+    render();
+  }, 60);
 }
 
 function loadFile(file: File) {
@@ -111,8 +218,6 @@ fileInput.addEventListener("change", () => {
   const f = fileInput.files?.[0];
   if (f) loadFile(f);
 });
-
-renderBtn.addEventListener("click", () => render(true));
 
 downloadBtn.addEventListener("click", () => {
   if (!currentImage) return;

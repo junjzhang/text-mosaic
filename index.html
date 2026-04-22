@@ -13,11 +13,8 @@
           <button type="button" class="toggle" id="toggle" aria-expanded="true">收起</button>
         </h1>
 
-        <label class="file" for="file">
-          <span>图片</span>
-          <span class="file-btn">选择文件…</span>
-        </label>
         <input type="file" id="file" accept="image/*" hidden />
+        <input type="color" id="customColor" value="#B7AFC7" hidden />
 
         <label class="output">
           <span>输出</span>
@@ -70,17 +67,14 @@
 
         <label class="bg">
           <span id="colorLabel">背景色</span>
-          <select id="color">
-            <option value="white">白</option>
-            <option value="black">黑</option>
-            <option value="avg">图片均色</option>
-          </select>
+          <div class="color-grid" id="colorGrid"></div>
         </label>
 
         <div class="actions">
-          <button id="render" type="button">生成</button>
           <button id="download" type="button">下载 PNG</button>
         </div>
+
+        <label class="swap-link" for="file" id="swapLink">换一张图片</label>
 
         <p class="hint">拖拽图片到画布也可以</p>
       </aside>
