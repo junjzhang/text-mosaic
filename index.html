@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>text-mosaic</title>
+  </head>
+  <body>
+    <div id="app">
+      <aside class="controls">
+        <h1>text-mosaic</h1>
+
+        <label class="file">
+          <span>图片</span>
+          <input type="file" id="file" accept="image/*" />
+        </label>
+
+        <label>
+          <span>文字</span>
+          <input type="text" id="words" value="flower" placeholder="逗号分隔多个词" />
+        </label>
+
+        <label>
+          <span>字号 <output id="sizeOut">24</output>px</span>
+          <input type="range" id="size" min="8" max="80" step="1" value="24" />
+        </label>
+
+        <label>
+          <span>密度 <output id="densityOut">1.0</output></span>
+          <input type="range" id="density" min="0.3" max="2.5" step="0.1" value="1.0" />
+        </label>
+
+        <label>
+          <span>抖动 <output id="jitterOut">0.3</output></span>
+          <input type="range" id="jitter" min="0" max="1" step="0.05" value="0.3" />
+        </label>
+
+        <label>
+          <span>字号随机 <output id="sizeVarOut">0.3</output></span>
+          <input type="range" id="sizeVar" min="0" max="1" step="0.05" value="0.3" />
+        </label>
+
+        <label>
+          <span>字体</span>
+          <select id="font">
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Times New Roman', serif">Times</option>
+            <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+            <option value="'Courier New', monospace">Courier</option>
+            <option value="Impact, sans-serif">Impact</option>
+          </select>
+        </label>
+
+        <label class="bg">
+          <span>背景</span>
+          <select id="bgMode">
+            <option value="white">白</option>
+            <option value="black">黑</option>
+            <option value="avg">图片平均色</option>
+            <option value="transparent">透明</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button id="render" type="button">生成</button>
+          <button id="download" type="button">下载 PNG</button>
+        </div>
+
+        <p class="hint">拖拽图片到画布也可以</p>
+      </aside>
+
+      <main class="stage">
+        <canvas id="canvas"></canvas>
+        <div id="placeholder">把图片拖到这里，或在左边选择</div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
