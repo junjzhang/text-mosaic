@@ -7,15 +7,18 @@
   </head>
   <body>
     <div id="app">
-      <aside class="controls">
-        <h1>text-mosaic</h1>
+      <aside class="controls" id="controls">
+        <h1>
+          text-mosaic
+          <button type="button" class="toggle" id="toggle" aria-expanded="true">收起</button>
+        </h1>
 
         <label class="file">
           <span>图片</span>
           <input type="file" id="file" accept="image/*" />
         </label>
 
-        <label>
+        <label class="words">
           <span>文字</span>
           <input type="text" id="words" value="flower" placeholder="逗号分隔多个词" />
         </label>
@@ -71,7 +74,7 @@
 
       <main class="stage">
         <canvas id="canvas"></canvas>
-        <div id="placeholder">把图片拖到这里，或在左边选择</div>
+        <div id="placeholder">选择一张图片开始</div>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

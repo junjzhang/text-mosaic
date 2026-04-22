@@ -16,6 +16,20 @@ const downloadBtn = $<HTMLButtonElement>("download");
 const canvas = $<HTMLCanvasElement>("canvas");
 const placeholder = $<HTMLDivElement>("placeholder");
 const stage = document.querySelector<HTMLElement>(".stage")!;
+const controls = $<HTMLElement>("controls");
+const toggleBtn = $<HTMLButtonElement>("toggle");
+
+const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+
+function setCollapsed(collapsed: boolean) {
+  controls.classList.toggle("collapsed", collapsed);
+  toggleBtn.textContent = collapsed ? "展开" : "收起";
+  toggleBtn.setAttribute("aria-expanded", String(!collapsed));
+}
+
+toggleBtn.addEventListener("click", () => {
+  setCollapsed(!controls.classList.contains("collapsed"));
+});
 
 let currentImage: HTMLImageElement | null = null;
 
@@ -47,11 +61,12 @@ function readOptions(): MosaicOptions {
   };
 }
 
-function render() {
+function render(autoCollapse = false) {
   if (!currentImage) return;
   renderMosaic(currentImage, canvas, readOptions());
   canvas.classList.add("ready");
   placeholder.style.display = "none";
+  if (autoCollapse && isMobile()) setCollapsed(true);
 }
 
 function loadFile(file: File) {
@@ -61,7 +76,7 @@ function loadFile(file: File) {
   img.onload = () => {
     URL.revokeObjectURL(url);
     currentImage = img;
-    render();
+    render(true);
   };
   img.src = url;
 }
@@ -71,7 +86,7 @@ fileInput.addEventListener("change", () => {
   if (f) loadFile(f);
 });
 
-renderBtn.addEventListener("click", render);
+renderBtn.addEventListener("click", () => render(true));
 
 downloadBtn.addEventListener("click", () => {
   if (!currentImage) return;
