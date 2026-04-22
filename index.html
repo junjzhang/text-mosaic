@@ -13,10 +13,11 @@
           <button type="button" class="toggle" id="toggle" aria-expanded="true">收起</button>
         </h1>
 
-        <label class="file">
+        <label class="file" for="file">
           <span>图片</span>
-          <input type="file" id="file" accept="image/*" />
+          <span class="file-btn">选择文件…</span>
         </label>
+        <input type="file" id="file" accept="image/*" hidden />
 
         <label class="output">
           <span>输出</span>
@@ -39,8 +40,8 @@
         </label>
 
         <label>
-          <span>密度 <output id="densityOut">1.0</output></span>
-          <input type="range" id="density" min="0.3" max="2.5" step="0.1" value="1.0" />
+          <span>密度 <output id="densityOut">0.6</output></span>
+          <input type="range" id="density" min="0.3" max="2.5" step="0.1" value="0.6" />
         </label>
 
         <label>
@@ -56,11 +57,14 @@
         <label>
           <span>字体</span>
           <select id="font">
+            <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+            <option value="system-ui, -apple-system, sans-serif">System</option>
+            <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+            <option value="'Arial Black', sans-serif">Arial Black</option>
+            <option value="Impact, sans-serif">Impact</option>
             <option value="Georgia, serif">Georgia</option>
             <option value="'Times New Roman', serif">Times</option>
-            <option value="Helvetica, Arial, sans-serif">Helvetica</option>
             <option value="'Courier New', monospace">Courier</option>
-            <option value="Impact, sans-serif">Impact</option>
           </select>
         </label>
 
@@ -83,7 +87,7 @@
 
       <main class="stage">
         <canvas id="canvas"></canvas>
-        <div id="placeholder">选择一张图片开始</div>
+        <label id="placeholder" for="file">选择一张图片开始</label>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

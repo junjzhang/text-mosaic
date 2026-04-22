@@ -75,9 +75,26 @@ input[type="text"] {
   font-size: 16px;
 }
 
-input[type="file"] {
-  font-size: 12px;
-  color: var(--muted);
+.file-btn {
+  display: block;
+  text-align: center;
+  background: #111;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-height: 40px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.file-btn:hover {
+  background: #1a1a1a;
+  border-color: #3a3a3a;
+}
+
+.file-btn:active {
+  background: #222;
 }
 
 input[type="range"] {
@@ -192,11 +209,21 @@ canvas.ready {
 }
 
 #placeholder {
+  display: block;
   color: var(--muted);
   border: 2px dashed var(--border);
   padding: 80px 60px;
   border-radius: 10px;
   text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+#placeholder:hover,
+#placeholder:active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 122, 182, 0.04);
 }
 
 .stage.dragover #placeholder {
@@ -242,17 +269,23 @@ canvas.ready {
     font-size: 13px;
   }
 
+  .file-btn {
+    min-height: 44px;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  #placeholder {
+    padding: 40px 24px;
+    font-size: 14px;
+  }
+
   .hint {
     display: none;
   }
 
   .stage {
     padding: 12px;
-  }
-
-  #placeholder {
-    padding: 40px 24px;
-    font-size: 13px;
   }
 }
 
