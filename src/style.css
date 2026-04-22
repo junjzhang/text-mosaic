@@ -86,6 +86,41 @@ input[type="range"] {
   height: 28px;
 }
 
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.segmented button {
+  flex: 0;
+  min-height: 34px;
+  padding: 6px 4px;
+  font-size: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.segmented button:hover {
+  color: var(--text);
+}
+
+.segmented button[aria-checked="true"] {
+  background: var(--accent);
+  color: #111;
+  font-weight: 600;
+}
+
 output {
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -196,9 +231,15 @@ canvas.ready {
   }
 
   .controls > label.file,
+  .controls > label.output,
   .controls > label.words,
   .controls > .actions {
     grid-column: 1 / -1;
+  }
+
+  .segmented button {
+    min-height: 40px;
+    font-size: 13px;
   }
 
   .hint {

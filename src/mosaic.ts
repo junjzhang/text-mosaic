@@ -1,3 +1,7 @@
+export type Mode = "positive" | "negative";
+export type Output = "positive" | "negative" | "hstack" | "vstack";
+export type ColorKey = "white" | "black" | "avg";
+
 export interface MosaicOptions {
   words: string[];
   fontSize: number;
@@ -5,39 +9,88 @@ export interface MosaicOptions {
   density: number;
   jitter: number;
   sizeVariance: number;
-  bgMode: "white" | "black" | "avg" | "transparent";
+  color: ColorKey;
+  output: Output;
 }
 
-interface Pixel {
-  r: number;
-  g: number;
-  b: number;
-}
+type Source = HTMLImageElement | HTMLCanvasElement;
 
-export function renderMosaic(
-  source: HTMLImageElement | HTMLCanvasElement,
-  target: HTMLCanvasElement,
-  opts: MosaicOptions,
-): void {
+const MAX_DIM = 1600;
+
+export function renderMosaic(source: Source, target: HTMLCanvasElement, opts: MosaicOptions): void {
   const srcW = source instanceof HTMLImageElement ? source.naturalWidth : source.width;
   const srcH = source instanceof HTMLImageElement ? source.naturalHeight : source.height;
-
-  const maxDim = 1600;
-  const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+  const scale = Math.min(1, MAX_DIM / Math.max(srcW, srcH));
   const W = Math.round(srcW * scale);
   const H = Math.round(srcH * scale);
 
-  target.width = W;
-  target.height = H;
-
   const pixels = readPixels(source, W, H);
+  const resolved = resolveColor(opts.color, pixels);
+
+  const layout = layoutFor(opts.output, W, H);
+  target.width = layout.totalW;
+  target.height = layout.totalH;
 
   const ctx = target.getContext("2d")!;
-  ctx.fillStyle = resolveBackground(opts.bgMode, pixels, W, H);
-  if (opts.bgMode === "transparent") {
-    ctx.clearRect(0, 0, W, H);
+  for (const panel of layout.panels) {
+    drawPanel(ctx, source, pixels, W, H, panel.x, panel.y, panel.mode, resolved, opts);
+  }
+}
+
+interface Panel {
+  x: number;
+  y: number;
+  mode: Mode;
+}
+
+function layoutFor(
+  output: Output,
+  W: number,
+  H: number,
+): { totalW: number; totalH: number; panels: Panel[] } {
+  switch (output) {
+    case "positive":
+      return { totalW: W, totalH: H, panels: [{ x: 0, y: 0, mode: "positive" }] };
+    case "negative":
+      return { totalW: W, totalH: H, panels: [{ x: 0, y: 0, mode: "negative" }] };
+    case "hstack":
+      return {
+        totalW: W * 2,
+        totalH: H,
+        panels: [
+          { x: 0, y: 0, mode: "positive" },
+          { x: W, y: 0, mode: "negative" },
+        ],
+      };
+    case "vstack":
+      return {
+        totalW: W,
+        totalH: H * 2,
+        panels: [
+          { x: 0, y: 0, mode: "positive" },
+          { x: 0, y: H, mode: "negative" },
+        ],
+      };
+  }
+}
+
+function drawPanel(
+  ctx: CanvasRenderingContext2D,
+  source: Source,
+  pixels: Uint8ClampedArray,
+  W: number,
+  H: number,
+  ox: number,
+  oy: number,
+  mode: Mode,
+  color: string,
+  opts: MosaicOptions,
+): void {
+  if (mode === "negative") {
+    ctx.drawImage(source, ox, oy, W, H);
   } else {
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = color;
+    ctx.fillRect(ox, oy, W, H);
   }
 
   ctx.textBaseline = "middle";
@@ -46,7 +99,6 @@ export function renderMosaic(
   const cell = opts.fontSize / opts.density;
   const cols = Math.ceil(W / cell);
   const rows = Math.ceil(H / cell);
-
   const rand = mulberry32(0xc0ffee);
 
   let wordIdx = 0;
@@ -54,29 +106,29 @@ export function renderMosaic(
     for (let col = 0; col < cols; col++) {
       const cx = (col + 0.5) * cell + (rand() - 0.5) * cell * opts.jitter * 2;
       const cy = (row + 0.5) * cell + (rand() - 0.5) * cell * opts.jitter * 2;
-
       const px = Math.max(0, Math.min(W - 1, Math.floor(cx)));
       const py = Math.max(0, Math.min(H - 1, Math.floor(cy)));
-      const color = samplePixel(pixels, W, px, py);
 
       const sizeMul = 1 + (rand() - 0.5) * 2 * opts.sizeVariance;
       const size = Math.max(6, opts.fontSize * sizeMul);
 
       ctx.font = `${size}px ${opts.fontFamily}`;
-      ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
+
+      if (mode === "positive") {
+        const i = (py * W + px) * 4;
+        ctx.fillStyle = `rgb(${pixels[i]},${pixels[i + 1]},${pixels[i + 2]})`;
+      } else {
+        ctx.fillStyle = color;
+      }
 
       const word = opts.words[wordIdx % opts.words.length];
       wordIdx++;
-      ctx.fillText(word, cx, cy);
+      ctx.fillText(word, ox + cx, oy + cy);
     }
   }
 }
 
-function readPixels(
-  source: HTMLImageElement | HTMLCanvasElement,
-  w: number,
-  h: number,
-): Uint8ClampedArray {
+function readPixels(source: Source, w: number, h: number): Uint8ClampedArray {
   const off = document.createElement("canvas");
   off.width = w;
   off.height = h;
@@ -85,27 +137,15 @@ function readPixels(
   return ctx.getImageData(0, 0, w, h).data;
 }
 
-function samplePixel(data: Uint8ClampedArray, w: number, x: number, y: number): Pixel {
-  const i = (y * w + x) * 4;
-  return { r: data[i], g: data[i + 1], b: data[i + 2] };
-}
-
-function resolveBackground(
-  mode: MosaicOptions["bgMode"],
-  pixels: Uint8ClampedArray,
-  w: number,
-  h: number,
-): string {
-  if (mode === "white") return "#ffffff";
-  if (mode === "black") return "#000000";
-  if (mode === "transparent") return "rgba(0,0,0,0)";
-
+function resolveColor(key: ColorKey, pixels: Uint8ClampedArray): string {
+  if (key === "white") return "#ffffff";
+  if (key === "black") return "#000000";
   let r = 0,
     g = 0,
-    b = 0;
+    b = 0,
+    n = 0;
   const step = 4 * 16;
-  let n = 0;
-  for (let i = 0; i < w * h * 4; i += step) {
+  for (let i = 0; i < pixels.length; i += step) {
     r += pixels[i];
     g += pixels[i + 1];
     b += pixels[i + 2];

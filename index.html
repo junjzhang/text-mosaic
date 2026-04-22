@@ -18,6 +18,16 @@
           <input type="file" id="file" accept="image/*" />
         </label>
 
+        <label class="output">
+          <span>输出</span>
+          <div class="segmented" id="output" role="radiogroup" aria-label="输出模式">
+            <button type="button" data-value="positive" aria-checked="true">正形</button>
+            <button type="button" data-value="negative" aria-checked="false">负形</button>
+            <button type="button" data-value="hstack" aria-checked="false">横排</button>
+            <button type="button" data-value="vstack" aria-checked="false">纵排</button>
+          </div>
+        </label>
+
         <label class="words">
           <span>文字</span>
           <input type="text" id="words" value="flower" placeholder="逗号分隔多个词" />
@@ -55,12 +65,11 @@
         </label>
 
         <label class="bg">
-          <span>背景</span>
-          <select id="bgMode">
+          <span id="colorLabel">背景色</span>
+          <select id="color">
             <option value="white">白</option>
             <option value="black">黑</option>
-            <option value="avg">图片平均色</option>
-            <option value="transparent">透明</option>
+            <option value="avg">图片均色</option>
           </select>
         </label>
 

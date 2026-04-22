@@ -1,5 +1,5 @@
 import "./style.css";
-import { renderMosaic, type MosaicOptions } from "./mosaic";
+import { renderMosaic, type MosaicOptions, type Output } from "./mosaic";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -10,7 +10,9 @@ const densityInput = $<HTMLInputElement>("density");
 const jitterInput = $<HTMLInputElement>("jitter");
 const sizeVarInput = $<HTMLInputElement>("sizeVar");
 const fontSelect = $<HTMLSelectElement>("font");
-const bgSelect = $<HTMLSelectElement>("bgMode");
+const colorSelect = $<HTMLSelectElement>("color");
+const colorLabel = $<HTMLSpanElement>("colorLabel");
+const outputGroup = $<HTMLDivElement>("output");
 const renderBtn = $<HTMLButtonElement>("render");
 const downloadBtn = $<HTMLButtonElement>("download");
 const canvas = $<HTMLCanvasElement>("canvas");
@@ -18,6 +20,9 @@ const placeholder = $<HTMLDivElement>("placeholder");
 const stage = document.querySelector<HTMLElement>(".stage")!;
 const controls = $<HTMLElement>("controls");
 const toggleBtn = $<HTMLButtonElement>("toggle");
+
+let currentImage: HTMLImageElement | null = null;
+let currentOutput: Output = "positive";
 
 const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
@@ -31,8 +36,6 @@ toggleBtn.addEventListener("click", () => {
   setCollapsed(!controls.classList.contains("collapsed"));
 });
 
-let currentImage: HTMLImageElement | null = null;
-
 const sliders: [HTMLInputElement, HTMLOutputElement][] = [
   [sizeInput, $<HTMLOutputElement>("sizeOut")],
   [densityInput, $<HTMLOutputElement>("densityOut")],
@@ -44,6 +47,28 @@ for (const [input, out] of sliders) {
   sync();
   input.addEventListener("input", sync);
 }
+
+const colorLabels: Record<Output, string> = {
+  positive: "背景色",
+  negative: "文字色",
+  hstack: "辅助色",
+  vstack: "辅助色",
+};
+
+function updateColorLabel() {
+  colorLabel.textContent = colorLabels[currentOutput];
+}
+
+outputGroup.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-value]");
+  if (!btn) return;
+  currentOutput = btn.dataset.value as Output;
+  for (const b of outputGroup.querySelectorAll<HTMLButtonElement>("button[data-value]")) {
+    b.setAttribute("aria-checked", String(b === btn));
+  }
+  updateColorLabel();
+  if (currentImage) render();
+});
 
 function readOptions(): MosaicOptions {
   const words = wordsInput.value
@@ -57,7 +82,8 @@ function readOptions(): MosaicOptions {
     density: Number(densityInput.value),
     jitter: Number(jitterInput.value),
     sizeVariance: Number(sizeVarInput.value),
-    bgMode: bgSelect.value as MosaicOptions["bgMode"],
+    color: colorSelect.value as MosaicOptions["color"],
+    output: currentOutput,
   };
 }
 
@@ -95,7 +121,7 @@ downloadBtn.addEventListener("click", () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `text-mosaic-${Date.now()}.png`;
+    a.download = `text-mosaic-${currentOutput}-${Date.now()}.png`;
     a.click();
     URL.revokeObjectURL(url);
   }, "image/png");
@@ -117,3 +143,5 @@ stage.addEventListener("drop", (ev) => {
   const f = ev.dataTransfer?.files?.[0];
   if (f) loadFile(f);
 });
+
+updateColorLabel();
