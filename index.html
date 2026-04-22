@@ -8,10 +8,17 @@
   <body>
     <div id="app">
       <aside class="controls" id="controls">
-        <h1>
-          text-mosaic
-          <button type="button" class="toggle" id="toggle" aria-expanded="true">收起</button>
-        </h1>
+        <header class="panel-header">
+          <h1>text-mosaic</h1>
+          <button type="button" class="icon-btn" id="fullscreen" aria-label="全屏">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 9V4h5" />
+              <path d="M20 9V4h-5" />
+              <path d="M20 15v5h-5" />
+              <path d="M4 15v5h5" />
+            </svg>
+          </button>
+        </header>
 
         <input type="file" id="file" accept="image/*" hidden />
         <input type="color" id="customColor" value="#B7AFC7" hidden />
@@ -26,63 +33,82 @@
           </div>
         </label>
 
-        <label class="words">
-          <span>文字</span>
-          <input type="text" id="words" value="flower" placeholder="逗号分隔多个词" />
-        </label>
+        <nav class="tabs" role="tablist">
+          <button type="button" data-tab="text" aria-selected="true">文字</button>
+          <button type="button" data-tab="params" aria-selected="false">参数</button>
+          <button type="button" data-tab="color" aria-selected="false">颜色</button>
+        </nav>
 
-        <label>
-          <span>字号 <output id="sizeOut">24</output>px</span>
-          <input type="range" id="size" min="8" max="80" step="1" value="24" />
-        </label>
+        <div class="tab-panel active" data-tab="text">
+          <label class="words">
+            <span>文字</span>
+            <input type="text" id="words" value="flower" placeholder="逗号分隔多个词" />
+          </label>
 
-        <label>
-          <span>密度 <output id="densityOut">0.5</output></span>
-          <input type="range" id="density" min="0.15" max="2" step="0.05" value="0.5" />
-        </label>
+          <label class="font">
+            <span>字体</span>
+            <select id="font">
+              <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+              <option value="system-ui, -apple-system, sans-serif">System</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+              <option value="'Arial Black', sans-serif">Arial Black</option>
+              <option value="Impact, sans-serif">Impact</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times</option>
+              <option value="'Courier New', monospace">Courier</option>
+            </select>
+          </label>
+        </div>
 
-        <label>
-          <span>抖动 <output id="jitterOut">0.3</output></span>
-          <input type="range" id="jitter" min="0" max="1" step="0.05" value="0.3" />
-        </label>
+        <div class="tab-panel" data-tab="params">
+          <label>
+            <span>字号 <output id="sizeOut">24</output>px</span>
+            <input type="range" id="size" min="8" max="80" step="1" value="24" />
+          </label>
 
-        <label>
-          <span>字号随机 <output id="sizeVarOut">0.3</output></span>
-          <input type="range" id="sizeVar" min="0" max="1" step="0.05" value="0.3" />
-        </label>
+          <label>
+            <span>密度 <output id="densityOut">0.5</output></span>
+            <input type="range" id="density" min="0.15" max="2" step="0.05" value="0.5" />
+          </label>
 
-        <label class="font">
-          <span>字体</span>
-          <select id="font">
-            <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-            <option value="system-ui, -apple-system, sans-serif">System</option>
-            <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
-            <option value="'Arial Black', sans-serif">Arial Black</option>
-            <option value="Impact, sans-serif">Impact</option>
-            <option value="Georgia, serif">Georgia</option>
-            <option value="'Times New Roman', serif">Times</option>
-            <option value="'Courier New', monospace">Courier</option>
-          </select>
-        </label>
+          <label>
+            <span>抖动 <output id="jitterOut">0.3</output></span>
+            <input type="range" id="jitter" min="0" max="1" step="0.05" value="0.3" />
+          </label>
 
-        <label class="bg">
-          <span id="colorLabel">背景色</span>
-          <div class="color-grid" id="colorGrid"></div>
-        </label>
+          <label>
+            <span>字号随机 <output id="sizeVarOut">0.3</output></span>
+            <input type="range" id="sizeVar" min="0" max="1" step="0.05" value="0.3" />
+          </label>
+        </div>
+
+        <div class="tab-panel" data-tab="color">
+          <label class="bg">
+            <span id="colorLabel">背景色</span>
+            <div class="color-grid" id="colorGrid"></div>
+          </label>
+        </div>
 
         <div class="actions">
           <button id="download" type="button">下载 PNG</button>
         </div>
 
         <label class="swap-link" for="file" id="swapLink">换一张图片</label>
-
-        <p class="hint">拖拽图片到画布也可以</p>
       </aside>
 
       <main class="stage">
         <canvas id="canvas"></canvas>
         <label id="placeholder" for="file">选择一张图片开始</label>
       </main>
+
+      <button type="button" class="exit-fullscreen" id="exitFullscreen" aria-label="退出全屏">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 4v5H4" />
+          <path d="M15 4v5h5" />
+          <path d="M15 20v-5h5" />
+          <path d="M9 20v-5H4" />
+        </svg>
+      </button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

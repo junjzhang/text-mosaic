@@ -19,8 +19,10 @@ const downloadBtn = $<HTMLButtonElement>("download");
 const canvas = $<HTMLCanvasElement>("canvas");
 const placeholder = $<HTMLDivElement>("placeholder");
 const stage = document.querySelector<HTMLElement>(".stage")!;
-const controls = $<HTMLElement>("controls");
-const toggleBtn = $<HTMLButtonElement>("toggle");
+const fullscreenBtn = $<HTMLButtonElement>("fullscreen");
+const exitFullscreenBtn = $<HTMLButtonElement>("exitFullscreen");
+const tabsNav = document.querySelector<HTMLElement>(".tabs")!;
+const tabPanels = document.querySelectorAll<HTMLElement>(".tab-panel");
 
 let currentImage: HTMLImageElement | null = null;
 let currentOutput: Output = "positive";
@@ -114,16 +116,23 @@ customColorInput.addEventListener("input", () => {
 buildSwatches();
 updateActiveSwatch();
 
-const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+fullscreenBtn.addEventListener("click", () => {
+  document.body.classList.add("fullscreen");
+});
+exitFullscreenBtn.addEventListener("click", () => {
+  document.body.classList.remove("fullscreen");
+});
 
-function setCollapsed(collapsed: boolean) {
-  controls.classList.toggle("collapsed", collapsed);
-  toggleBtn.textContent = collapsed ? "展开" : "收起";
-  toggleBtn.setAttribute("aria-expanded", String(!collapsed));
-}
-
-toggleBtn.addEventListener("click", () => {
-  setCollapsed(!controls.classList.contains("collapsed"));
+tabsNav.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-tab]");
+  if (!btn) return;
+  const target = btn.dataset.tab;
+  for (const b of tabsNav.querySelectorAll<HTMLButtonElement>("button[data-tab]")) {
+    b.setAttribute("aria-selected", String(b === btn));
+  }
+  for (const panel of tabPanels) {
+    panel.classList.toggle("active", panel.dataset.tab === target);
+  }
 });
 
 const sliders: [HTMLInputElement, HTMLOutputElement][] = [
@@ -183,13 +192,12 @@ function readOptions(): MosaicOptions {
   };
 }
 
-function render(autoCollapse = false) {
+function render() {
   if (!currentImage) return;
   renderMosaic(currentImage, canvas, readOptions());
   canvas.classList.add("ready");
   placeholder.style.display = "none";
   swapLink.classList.add("visible");
-  if (autoCollapse && isMobile()) setCollapsed(true);
 }
 
 let renderTimer: number | null = null;
@@ -209,7 +217,7 @@ function loadFile(file: File) {
   img.onload = () => {
     URL.revokeObjectURL(url);
     currentImage = img;
-    render(true);
+    render();
   };
   img.src = url;
 }
